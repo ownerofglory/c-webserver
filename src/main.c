@@ -3,15 +3,14 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <unistd.h>
 #include <pthread.h>
+
+#include "fs.h"
 
 #define PORT 8080
 #define TRUE 1
 #define FALSE 0
 #define READ_BUF_SIZE 1024
-
-char* read_file(char* name);
 
 int main(int arcg, char** args) 
 {
@@ -95,36 +94,4 @@ outer_loop:
     printf("Server shutdown\n");
 
     return 0;
-}
-
-char* read_file(char* name) 
-{
-    FILE* file = fopen(name, "r");
-
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    rewind(file);
-
-    char* buf = malloc(file_size + 1);
-    if (buf == NULL) 
-    {
-        printf("Error when allocating file buffer");
-        fclose(file);
-        return NULL;
-    }
-
-    size_t bytes_read = fread(buf, 1, file_size, file);
-    if (bytes_read < file_size) 
-    {
-        printf("Error when reading file");
-        fclose(file);
-        free(buf);
-        return NULL;
-    }
-    
-    buf[file_size] = '\0';
-
-    fclose (file);
-
-    return buf;
 }
