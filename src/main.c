@@ -4,8 +4,10 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <strings.h>
 
 #include "fs.h"
+#include "http.h"
 
 #define PORT 8080
 #define TRUE 1
@@ -60,27 +62,52 @@ outer_loop:
 
         while (TRUE) 
         {
-            char read_buf[READ_BUF_SIZE];
-            size_t buf_len = sizeof(read_buf);
-            int bytes_read = read(sock_conn, &read_buf, buf_len);
-            if (bytes_read <= 0) 
+            http_req* req = parse_req(&sock_conn);
+            if (req == NULL)
             {
+                write_resp(&sock_conn, HTTP_RESP_BAD_REQUEST, "\r\n\r\n", "");
+                goto rw_loop;
+            }
+            
+            char* server_path = "./site";
+            char* file_name = req->path; 
+            if(strcmp(req->path, "/") == 0)
+            {
+                file_name = "/index.html";
+            }
+
+            char str_buf[128] = "";
+            strcat(str_buf, server_path);
+            strcat(str_buf, file_name);
+
+            int f_size = file_size(str_buf);
+            if (f_size < 0) 
+            {
+                printf("Unable to determine file size: %d\n", f_size);
+                write_resp(&sock_conn, HTTP_RESP_NOT_FOUND, "\r\n\r\n", "");        
                 goto rw_loop;
             }
 
-            printf("%s\n", read_buf);
+            char file_buf[f_size];
+            int result = read_file(str_buf, file_buf, (size_t) f_size + 1);
+            if (result < 0) 
+            {
+                switch(result) 
+                {
+                    case ERR_FILE_NOT_FOUND:
+                        write_resp(&sock_conn, HTTP_RESP_NOT_FOUND, "\r\n\r\n", "");
+                        break;
+                    case ERR_READ_FAIL:
+                    case ERR_BUF_TOO_SMALL:
+                        write_resp(&sock_conn, HTTP_RESP_INTERNAL_SERVER_ERROR, "\r\n\r\n", "");
+                        break;
+                }
+                goto rw_loop;
+            }
 
-            char* message = read_file("./site/index.html");
-            if (message == NULL) 
-            {
-                goto rw_loop;
-            }
-            int bytes_written = write(sock_conn, message, sizeof(message));
-            free(message);
-            if (bytes_written <= 0) 
-            {
-                goto rw_loop;
-            }
+            int ok = write_resp(&sock_conn, HTTP_RESP_OK, "Content-Type: text/html\r\n\r\n", file_buf);
+
+            goto rw_loop;
         }
         rw_loop:
         printf("Closing socket(%d) connection\n", sock_conn);

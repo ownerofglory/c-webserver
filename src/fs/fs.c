@@ -2,20 +2,42 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-char* read_file(char* name) 
+#include "fs.h"
+
+int file_size(const char* name)
 {
     FILE* file = fopen(name, "r");
+    if (file == NULL) {
+        printf("Error when opening file\n");
+        return ERR_FILE_NOT_FOUND;
+    }
 
     fseek(file, 0, SEEK_END);
     long file_size = ftell(file);
     rewind(file);
 
-    char* buf = malloc(file_size + 1);
-    if (buf == NULL) 
+    fclose(file);
+
+    return file_size;
+}
+
+int read_file(const char* name, char* buf, size_t buf_size) 
+{
+    FILE* file = fopen(name, "r");
+    if (file == NULL) {
+        printf("Error when opening file\n");
+        return ERR_FILE_NOT_FOUND;
+    }
+
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    rewind(file);
+
+    if (buf_size < file_size + 1)
     {
-        printf("Error when allocating file buffer");
+        printf("Provided buffer is too small\n");
         fclose(file);
-        return NULL;
+        return ERR_BUF_TOO_SMALL;
     }
 
     size_t bytes_read = fread(buf, 1, file_size, file);
@@ -24,12 +46,12 @@ char* read_file(char* name)
         printf("Error when reading file");
         fclose(file);
         free(buf);
-        return NULL;
+        return ERR_READ_FAIL;
     }
     
     buf[file_size] = '\0';
 
     fclose (file);
 
-    return buf;
+    return SUCCESS;
 }
