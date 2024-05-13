@@ -1,6 +1,7 @@
 bin/
 out/
 obj/
+asm/
 .vscode
 .idea
 a.*
