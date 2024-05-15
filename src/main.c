@@ -8,6 +8,7 @@
 
 #include "fs.h"
 #include "http.h"
+#include "hash.h"
 
 #define PORT 8080
 #define TRUE 1
