@@ -1,3 +1,7 @@
+#ifndef HASH_H
+#define HASH_H
+
+
 #define FNV_OFFSET 14695981039346656037UL
 #define FNV_PRIME 1099511628211UL
 #define INIT_CAPACITY 10
@@ -27,3 +31,5 @@ int ht_add_value(hash_table* ht, const char* key, const char* val);
 char* ht_get_value(hash_table* ht, const char* key);
 
 void ht_destroy(hash_table* ht);
+
+#endif

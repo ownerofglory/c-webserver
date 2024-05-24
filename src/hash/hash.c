@@ -32,7 +32,7 @@ void resize(hash_table* ht)
         hash_table_entry* cur = old_buckets[i];
         while (cur != NULL)
         {
-            add_value(ht, cur->key, cur->val);
+            ht_add_value(ht, cur->key, cur->val);
             hash_table_entry* next = cur->next;
             free(cur->key);
             free(cur->val);

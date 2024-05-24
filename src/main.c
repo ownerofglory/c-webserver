@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <strings.h>
+#include <pthread.h>
 
 #include "fs.h"
 #include "http.h"

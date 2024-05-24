@@ -1,6 +1,10 @@
 #ifndef HTTP_H
 #define HTTP_H
 
+#include "hash.h"
+
+#define SERVER_READ_BUF_SIZE 8192
+
 typedef enum 
 {
     HTTP_METHOD_GET = 0,
@@ -29,10 +33,12 @@ typedef struct
 {
     http_req_method method;
     char* path;
-    http_header* headers;
+    hash_table* headers;
 } http_req;
 
 http_req* parse_req(int* sock_fd);
+
+char* get_req_header(http_req* req, const char* name);
 
 int write_resp(int* sock_fd, int status, char* headers, char* body);
 
