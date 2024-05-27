@@ -33,12 +33,17 @@ typedef struct
 {
     http_req_method method;
     char* path;
+    char* full_path;
+    char* query;
+    char* protocol_version;
     hash_table* headers;
 } http_req;
 
 http_req* parse_req(int* sock_fd);
 
 char* get_req_header(http_req* req, const char* name);
+
+hash_table*  get_req_params(http_req* req);
 
 int write_resp(int* sock_fd, int status, char* headers, char* body);
 

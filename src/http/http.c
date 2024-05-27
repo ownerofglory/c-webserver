@@ -66,12 +66,43 @@ int parse_req_method(http_req* req, char* method_s)
     return 0;
 }
 
+int parse_req_path(http_req* req, char* path)
+{
+    // /index.php?a=1&b=2
+    char* path_end = strstr(path, "?");
+    if (path_end == NULL)
+    {
+        return 0;
+    }
+
+    size_t path_size = path_end - path;
+    char* req_path = malloc(path_size + 1);
+    if (req_path == NULL)
+    {
+        return -1;
+    }
+
+    strncpy(req_path, path, path_size);
+    req_path[path_size] = '\0';
+
+    req->path = req_path;
+
+    char* query = path_end + 1;
+    if (strlen(query) <= 0)
+    {
+        return 0;
+    } 
+    req->query = query;
+
+
+    return 0;
+}
+
 http_req* parse_req(int* sock_fd) 
 {
     char read_buf[SERVER_READ_BUF_SIZE];
     size_t buf_len = sizeof(read_buf);
-    int bytes_read = read(*
-    sock_fd, &read_buf, buf_len);
+    int bytes_read = read(*sock_fd, &read_buf, buf_len);
     if (bytes_read < 0) {
         return NULL;
     }
@@ -124,7 +155,9 @@ http_req* parse_req(int* sock_fd)
     req->headers = header_ht;
     char* method = params[0];
     parse_req_method(req, method);
-    req->path = params[1];
+    req->full_path = params[1];
+    req->protocol_version = params[2];
+    parse_req_path(req, req->full_path);
 
     // parse request headers
     // skip requst line
@@ -141,7 +174,6 @@ http_req* parse_req(int* sock_fd)
 
     return req;
 }
-
 
 char* get_req_header(http_req* req, const char* name)
 {
