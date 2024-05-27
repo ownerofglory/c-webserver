@@ -7,6 +7,8 @@ Because what is the base way of learning if not doing something?
 ### Topics covered:
 - TCP sockets
 - Input/Output
+- POSIX threads (ptheads)
+- OS signal handling
 - Filesystem
 - Working with strings
 - Data structures:
